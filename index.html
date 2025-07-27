@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MindLog - Mental Wellness Journal</title>
+  <style>
+    :root {
+      --primary: #3a506b;
+      --bg: #f2f9fc;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --accent: #d9edf7;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      animation: fadeIn 0.7s ease-in;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      background-color: var(--accent);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .tab.active {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+      margin-top: 10px;
+      animation: fadeSlide 0.5s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    button, input, textarea {
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 8px 0;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      background-color: #f0f0f0;
+    }
+
+    .mood-btn {
+      font-size: 24px;
+      margin: 6px;
+      border: none;
+      background-color: #e0eaf1;
+      padding: 10px;
+    }
+
+    .mood-btn:hover {
+      background-color: #cddfea;
+    }
+
+    .rating-buttons button.selected {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .entry {
+      background: #fff;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .entry button {
+      background-color: #e7eaf0;
+      margin-top: 10px;
+    }
+
+    .alert-box {
+      background: #fffbe6;
+      border-left: 6px solid #ffc107;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0 }
+      to { opacity: 1 }
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 MindLog</h1>
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('home', event)">Home</div>
+      <div class="tab" onclick="showTab('journal', event)">Journal</div>
+      <div class="tab" onclick="showTab('calendar', event)">Calendar</div>
+      <div class="tab" onclick="showTab('help', event)">Help</div>
+    </div>
+
+    <div id="home" class="tab-content active">
+      <h2>Log Your Mood</h2>
+      <label>Date: <input type="date" id="entryDate"></label><br>
+      <div>
+        <h3>Select Mood</h3>
+        <button class="mood-btn" data-mood="Happy">😄</button>
+        <button class="mood-btn" data-mood="Neutral">😐</button>
+        <button class="mood-btn" data-mood="Sad">😢</button>
+        <button class="mood-btn" data-mood="Angry">😡</button>
+      </div>
+      <h3>Rate Your Day</h3>
+      <div class="rating-buttons">
+        <button data-rating="1">1</button>
+        <button data-rating="2">2</button>
+        <button data-rating="3" class="selected">3</button>
+        <button data-rating="4">4</button>
+        <button data-rating="5">5</button>
+      </div>
+      <h3>Notes</h3>
+      <textarea id="note" placeholder="Reflect on your day..."></textarea><br>
+      <button onclick="saveEntry()">Save Entry</button>
+    </div>
+
+    <div id="journal" class="tab-content">
+      <h2>Your Entries</h2>
+      <div id="entries"></div>
+    </div>
+
+    <div id="calendar" class="tab-content">
+      <h2>View by Date</h2>
+      <input type="date" id="calendarDate">
+      <div id="calendarEntry"></div>
+    </div>
+
+    <div id="help" class="tab-content">
+      <h2>🧡 Feeling Low?</h2>
+      <div class="alert-box">
+        We noticed you might be feeling low. You're not alone — help is available!<br><br>
+        🔗 <a href="https://icallhelpline.org/" target="_blank">iCall (Free Counseling)</a><br>
+        🔗 <a href="https://www.7cups.com/" target="_blank">7 Cups (Anonymous Support)</a><br>
+        📞 Vandrevala Helpline: <a href="tel:9152987821">9152987821</a><br><br>
+        🧘‍♀️ Try journaling regularly and reach out to friends or family.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedMood = "";
+    let selectedRating = 3;
+
+    function showTab(tabId, e) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      e.target.classList.add("active");
+    }
+
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+      btn.onclick = () => {
+        selectedMood = btn.dataset.mood;
+        document.querySelectorAll(".mood-btn").forEach(b => b.style.border = "none");
+        btn.style.border = "2px solid var(--primary)";
+      };
+    });
+
+    document.querySelectorAll(".rating-buttons button").forEach(btn => {
+      btn.onclick = () => {
+        selectedRating = parseInt(btn.dataset.rating);
+        document.querySelectorAll(".rating-buttons button").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      };
+    });
+
+    function saveEntry() {
+      const date = document.getElementById("entryDate").value;
+      const note = document.getElementById("note").value;
+      if (!date || !selectedMood) return alert("Please select a date and mood.");
+      const entry = { date, mood: selectedMood, rating: selectedRating, note };
+      let entries = JSON.parse(localStorage.getItem("mindlog") || "[]");
+      entries.push(entry);
+      localStorage.setItem("mindlog", JSON.stringify(entries));
+      document.getElementById("note").value = "";
+      renderEntries();
+    }
+
+    function renderEntries() {
+      const entriesDiv = document.getElementById("entries");
+      entriesDiv.innerHTML = "";
+      const entries = JSON.parse(localStorage.getItem("mindlog") || "[]");
+      entries.reverse().forEach((e, i) => {
+        entriesDiv.innerHTML += `
+          <div class="entry">
+            <strong>${e.date}</strong><br>
+            Mood: ${e.mood}<br>
+            Rating: ${e.rating}/5<br>
+            Note: ${e.note || "—"}<br>
+            <button onclick="editEntry(${entries.length - 1 - i})">Edit</button>
+            <button onclick="deleteEntry(${entries.length - 1 - i})">Delete</button>
+          </div>`;
+      });
+    }
+
+    function editEntry(index) {
+      const entries = JSON.parse(localStorage.getItem("mindlog") || "[]");
+      const entry = entries[index];
+      const mood = prompt("Edit mood:", entry.mood);
+      const rating = prompt("Edit rating (1-5):", entry.rating);
+      const note = prompt("Edit note:", entry.note);
+      if (mood && rating && !isNaN(rating)) {
+        entries[index] = { ...entry, mood, rating: parseInt(rating), note };
+        localStorage.setItem("mindlog", JSON.stringify(entries));
+        renderEntries();
+      }
+    }
+
+    function deleteEntry(index) {
+      const entries = JSON.parse(localStorage.getItem("mindlog") || "[]");
+      entries.splice(index, 1);
+      localStorage.setItem("mindlog", JSON.stringify(entries));
+      renderEntries();
+    }
+
+    document.getElementById("calendarDate").addEventListener("change", function () {
+      const selectedDate = this.value;
+      const entries = JSON.parse(localStorage.getItem("mindlog") || "[]");
+      const entry = entries.find(e => e.date === selectedDate);
+      const display = document.getElementById("calendarEntry");
+      display.innerHTML = entry ? `
+        <div class="entry">
+          <strong>${entry.date}</strong><br>
+          Mood: ${entry.mood}<br>
+          Rating: ${entry.rating}/5<br>
+          Note: ${entry.note || "—"}
+        </div>` : "<p>No entry found for this date.</p>";
+    });
+
+    renderEntries();
+  </script>
+
+  <!-- Tidio Chatbot -->
+  <script src="//code.tidio.co/nrdvhfac0hootwwh2x5zsqma1lykidxw.js" async></script>
+</body>
+</html>
